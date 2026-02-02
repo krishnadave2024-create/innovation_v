@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔐 Smart Attendance Login</title>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+        }
+        .login-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%; max-width: 400px;
+        }
+        h2 { text-align: center; color: #333; margin-bottom: 1.5rem; }
+        input {
+            width: 100%; padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+        input:focus { border-color: #667eea; outline: none; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+        button {
+            width: 100%; padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; border: none;
+            border-radius: 12px; font-size: 16px;
+            cursor: pointer; transition: all 0.3s;
+        }
+        button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102,126,234,0.3); }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .message { padding: 12px; border-radius: 8px; margin: 1rem 0; font-weight: 500; }
+        .error { background: #fee; color: #c33; border-left: 4px solid #c33; }
+        .success { background: #efe; color: #272; border-left: 4px solid #272; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2>🚀 Smart Attendance System</h2>
+        <form id="loginForm">
+            <input type="email" id="email" name="email" placeholder="📧 Enter your email" required>
+            <button type="submit" id="sendBtn">📤 Send OTP</button>
+        </form>
+        <div id="message"></div>
+    </div>
+
+    <script>
+    document.getElementById('loginForm').onsubmit = async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const email = document.getElementById('email').value.trim();
+        const btn = document.getElementById('sendBtn');
+        const msgDiv = document.getElementById('message');
+        
+        // ✅ VALIDATE BEFORE SENDING
+        if (!email || !email.includes('@')) {
+            showMessage('❌ Please enter a valid email!', 'error');
+            return;
+        }
+        
+        btn.textContent = '⏳ Sending...';
+        btn.disabled = true;
+        msgDiv.innerHTML = '';
+        
+        try {
+            const response = await fetch('/send-otp', {
+                method: 'POST',
+                body: formData  // ✅ This ensures request.form works
+            });
+            
+            const data = await response.json();
+            showMessage(data.message, data.success ? 'success' : 'error');
+            
+            if (data.success && data.redirect) {
+                setTimeout(() => {
+                    window.location.href = data.redirect;
+                }, 1000);
+            }
+        } catch (error) {
+            showMessage('❌ Network error! Please try again.', 'error');
+        }
+        
+        btn.textContent = '📤 Send OTP';
+        btn.disabled = false;
+    };
+    
+    function showMessage(text, type) {
+        const msgDiv = document.getElementById('message');
+        msgDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
+    }
+    </script>
+</body>
+</html>
